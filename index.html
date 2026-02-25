@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>모바일 신분증</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  background:#0f0f0f;
+  font-family:sans-serif;
+  color:white;
+  text-align:center;
+}
+
+.header{
+  padding:20px;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.status{
+  color:#00ff6a;
+  margin-bottom:15px;
+}
+
+.card-wrap{
+  display:flex;
+  justify-content:center;
+}
+
+.card{
+  width:330px;
+  height:210px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#f3e2b3,#e4c987,#d7b96a);
+  position:relative;
+  box-shadow:0 15px 30px rgba(0,0,0,0.5);
+  overflow:hidden;
+}
+
+.pattern{
+  position:absolute;
+  width:500px;
+  height:500px;
+  background:radial-gradient(circle at center, rgba(255,255,255,0.4) 1px, transparent 1px);
+  background-size:20px 20px;
+  opacity:0.2;
+}
+
+.info{
+  position:absolute;
+  top:20px;
+  left:20px;
+  text-align:left;
+  color:black;
+  font-size:14px;
+}
+
+.photo{
+  position:absolute;
+  bottom:15px;
+  right:15px;
+  width:90px;
+  height:110px;
+  background:#ccc;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.qr-area{
+  margin-top:20px;
+}
+
+#timer{
+  margin-top:10px;
+  color:#00ff6a;
+  font-size:18px;
+}
+
+.buttons{
+  position:fixed;
+  bottom:20px;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  gap:20px;
+}
+
+.btn{
+  padding:15px 30px;
+  border-radius:12px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.gray{background:#444;color:white;}
+.yellow{background:#ffde00;color:black;}
+</style>
+</head>
+
+<body>
+
+<div class="header">모바일 신분증</div>
+<div class="status">실시간</div>
+
+<div class="card-wrap">
+  <div class="card">
+    <div class="pattern"></div>
+    <div class="info">
+      <div><strong>이름:</strong> 오일찬</div>
+      <div><strong>생년월일:</strong> 2007.10.13</div>
+      <div><strong>지역:</strong> 광주</div>
+      <div><strong>만료:</strong> 2026.12.30</div>
+    </div>
+    <div class="photo">
+      <img id="profileImage">
+    </div>
+  </div>
+</div>
+
+<br>
+<input type="file" accept="image/*" onchange="loadImage(event)">
+
+<div class="qr-area">
+  <div id="qrcode"></div>
+  <div id="timer"></div>
+</div>
+
+<div class="buttons">
+  <button class="btn gray">QR촬영</button>
+  <button class="btn yellow" onclick="startQR()">내 QR</button>
+</div>
+
+<script>
+let interval;
+
+function loadImage(event){
+  const reader = new FileReader();
+  reader.onload = function(){
+    document.getElementById('profileImage').src = reader.result;
+  }
+  reader.readAsDataURL(event.target.files[0]);
+}
+
+function generateQRData(){
+  const now = new Date().getTime();
+  const block = Math.floor(now / 30000);
+  return "ID|오일찬|20071013|"+block;
+}
+
+function startQR(){
+  clearInterval(interval);
+  document.getElementById("qrcode").innerHTML="";
+
+  new QRCode(document.getElementById("qrcode"),{
+    text: generateQRData(),
+    width:180,
+    height:180
+  });
+
+  startTimer();
+}
+
+function startTimer(){
+  interval = setInterval(()=>{
+    const seconds = 30 - Math.floor((new Date().getTime()/1000)%30);
+    document.getElementById("timer").innerText="남은 시간: "+seconds+"초";
+
+    if(seconds===30){
+      startQR();
+    }
+  },1000);
+}
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
